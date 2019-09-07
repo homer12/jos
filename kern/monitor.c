@@ -78,8 +78,6 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 		rebp = *((unsigned int *)rebp);
 	}
 
-	cprintf("  ebp: %x", rebp);
-	cprintf("\n");
 
 	return 0;
 }
