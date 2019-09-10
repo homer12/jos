@@ -1,9 +1,10 @@
 #include <inc/mmu.h>
 #include <inc/memlayout.h>
 
+// NPTENTRIES is defined in mmu.h as 1024
 pte_t entry_pgtable[NPTENTRIES];
 
-// The entry.S page directory maps the first 4MB of physical memory
+// The entry.S page directory maps the first 4MB of virtual memory
 // starting at virtual address KERNBASE (that is, it maps virtual
 // addresses [KERNBASE, KERNBASE+4MB) to physical addresses [0, 4MB)).
 // We choose 4MB because that's how much we can map with one page
@@ -26,6 +27,13 @@ pde_t entry_pgdir[NPDENTRIES] = {
 	[KERNBASE>>PDXSHIFT]
 		= ((uintptr_t)entry_pgtable - KERNBASE) + PTE_P + PTE_W
 };
+
+
+/*
+ * Legal virtual memory address:
+ *	[ 0x00000000, 0x003FFFFF ]
+ *	[ 0xF0000000, 0xF03FFFFF ]
+ */
 
 // Entry 0 of the page table maps to physical page 0, entry 1 to
 // physical page 1, etc.

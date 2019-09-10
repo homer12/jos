@@ -11,6 +11,17 @@ extern const char __STABSTR_BEGIN__[];		// Beginning of string table
 extern const char __STABSTR_END__[];		// End of string table
 
 
+
+/*
+ *
+ *	reference to this blog for the format of STAB
+ *	http://jiyou.github.io/blog/2018/04/15/mit.6.828/jos-lab1
+ *
+ */
+
+
+
+
 // stab_binsearch(stabs, region_left, region_right, type, addr)
 //
 //	Some stab types are arranged in increasing order by instruction
@@ -49,14 +60,18 @@ extern const char __STABSTR_END__[];		// End of string table
 //
 static void
 stab_binsearch(const struct Stab *stabs, int *region_left, int *region_right,
-	       int type, uintptr_t addr)
-{
-	int l = *region_left, r = *region_right, any_matches = 0;
-
+	       int type, uintptr_t addr){
+	
+	
+	int l = *region_left, r = *region_right, any_matches = 0;	
+	
 	while (l <= r) {
-		int true_m = (l + r) / 2, m = true_m;
+
+		int true_m = l + (r-l) / 2, m = true_m;
 
 		// search for earliest stab with right type
+		// Skip all the entries that not belongs to 
+		//	the same type
 		while (m >= l && stabs[m].n_type != type)
 			m--;
 		if (m < l) {	// no match in [l, m]
@@ -65,6 +80,7 @@ stab_binsearch(const struct Stab *stabs, int *region_left, int *region_right,
 		}
 
 		// actual binary search
+		// ?? why set any_matches to 1?
 		any_matches = 1;
 		if (stabs[m].n_value < addr) {
 			*region_left = m;
@@ -77,10 +93,27 @@ stab_binsearch(const struct Stab *stabs, int *region_left, int *region_right,
 			// *region_right
 			*region_left = m;
 			l = m;
+
+			// @W: this ADDR++ thing has one assumption, that is
+			//	the entry which has the address ADDR must not
+			//	be an entry of the same type
+			// 
+			// @W: Under this assumption, we will end up at
+			//	*left = index of next stab entry of the same type
+			//	*right = *left - 1
 			addr++;
 		}
 	}
-
+	
+	// ???
+	// @W: What if there is just one entry of the same type
+	//	but the address of that entry is above the ADDR
+	//	We cannot say that the ADDR is included in that source file
+	// 
+	// @Anser: OK, that would not be the actual case. Because
+	//	every line should be from a file.
+	//	But there could be the case that one address do not
+	//	belong to any specific function.
 	if (!any_matches)
 		*region_right = *region_left - 1;
 	else {
@@ -117,7 +150,22 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 	info->eip_fn_narg = 0;
 
 	// Find the relevant set of stabs
+	
+	// @W: all the eip queried must be stored 
+	//	int the stack , which lies in
+	//	[ KSTACKTOP - PTSIZE, KSTACKTOP )
+	//	while ULIM is defined as KSTACKTOP - 2*PTSIZE
+	
+	// @W: But when debuggin this code, it said
+	//	the "stabs" and "__STAB_BEGIN__" is undefined
+	// @W: The reason is that GCC made this code inlined
+	//	if you want to debug this code, try to remove all
+	//	the "-O N" option
 	if (addr >= ULIM) {
+		// @W: We can `objdump -h obj/kern/kernel`
+		//	and can find one entry for .stab,
+		//	the VMA of that segment is equal to 
+		//	__STAB__BEGIN__ here
 		stabs = __STAB_BEGIN__;
 		stab_end = __STAB_END__;
 		stabstr = __STABSTR_BEGIN__;
@@ -179,6 +227,8 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 	//	Look at the STABS documentation and <inc/stab.h> to find
 	//	which one.
 	// Your code here.
+	stab_binsearch( stabs, &lline, &rline, N_SLINE, addr);
+	info->eip_line = stabs[lline].n_desc;
 
 
 	// Search backwards from the line number for the relevant filename
