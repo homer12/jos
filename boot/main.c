@@ -41,6 +41,9 @@ bootmain(void)
 	struct Proghdr *ph, *eph;
 
 	// read 1st page off disk
+	// read the (SECTSIZE*8) count bytes at offset 0 from
+	//		the start of kernel image, and put it to the 
+	//		pysical address 0x10000
 	readseg((uint32_t) ELFHDR, SECTSIZE*8, 0);
 
 	// is this a valid ELF?
@@ -72,10 +75,14 @@ void
 readseg(uint32_t pa, uint32_t count, uint32_t offset)
 {
 	uint32_t end_pa;
-
+	
+	// we will use the physical address
+	//		[ pa, end_pa )
 	end_pa = pa + count;
 
 	// round down to sector boundary
+	// so it's better that the low 9 bits of pa is 0
+	//		( 512 = 1<<9 )
 	pa &= ~(SECTSIZE - 1);
 
 	// translate from bytes to sectors, and kernel starts at sector 1
@@ -98,16 +105,41 @@ readseg(uint32_t pa, uint32_t count, uint32_t offset)
 void
 waitdisk(void)
 {
-	// wait for disk reaady
+	// wait for disk ready
+	// refer this url: http://bochs.sourceforge.net/techspec/PORTS.LST
+	// when bit 8 is cleared, the controller is not executing any command
+	// when bit 7 is set, the drive is ready
 	while ((inb(0x1F7) & 0xC0) != 0x40)
 		/* do nothing */;
 }
 
+
+
+// read one sector on disk which has number of 'offset' to 
+// the pysical address dst
 void
 readsect(void *dst, uint32_t offset)
 {
 	// wait for disk to be ready
 	waitdisk();
+	
+	// refer to this url: http://bochs.sourceforge.net/techspec/PORTS.LST
+	// 0x1F2:	sector count
+	// 0x1F3:	sector number
+	// 0x1F4:	cylinder low
+	// 0x1F5:	cylinder high
+	// 0x1F7:	command 0x20 means 'read sectors with retry'
+	
+	// !!!!!!!!!!!!!!!!!!!!
+	// !!!!!   BUT  !!!!!!!
+	// !!!!!!!!!!!!!!!!!!!!
+	
+	// according to this https://wiki.osdev.org/ATA_PIO_Mode#28_bit_PIO 
+	// 0x1F3 = LBA[0:8]
+	// 0X1F4 = LBA[9:16]
+	// 0x1F5 = LBA[17:23]
+	// 0x1F6 = LBA[24:27] | 0xE0 ( 0xE0 stands for "master" )
+
 
 	outb(0x1F2, 1);		// count = 1
 	outb(0x1F3, offset);
@@ -120,6 +152,8 @@ readsect(void *dst, uint32_t offset)
 	waitdisk();
 
 	// read a sector
+	// "SECTSIZE/4" stands for 16-bit data transfer from
+	//   disk each time
 	insl(0x1F0, dst, SECTSIZE/4);
 }
 
