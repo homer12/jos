@@ -1,4 +1,5 @@
-/obj
+obj/*
+!obj/.deps
 /jos.in
 /jos.log
 /jos.out
