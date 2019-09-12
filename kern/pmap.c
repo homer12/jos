@@ -102,8 +102,13 @@ boot_alloc(uint32_t n)
 	// to a multiple of PGSIZE.
 	//
 	// LAB 2: Your code here.
+	result = nextfree;
+	if( n ){
+		//cprintf("Roundup: %d\n", ROUNDUP(n,PGSIZE));
+		nextfree += ROUNDUP( n, PGSIZE );
+	}
 
-	return NULL;
+	return result;
 }
 
 // Set up a two-level page table:
@@ -124,8 +129,7 @@ mem_init(void)
 	// Find out how much memory the machine has (npages & npages_basemem).
 	i386_detect_memory();
 
-	// Remove this line when you're ready to test this function.
-	panic("mem_init: This function is not finished\n");
+
 
 	//////////////////////////////////////////////////////////////////////
 	// create initial page directory.
@@ -150,6 +154,22 @@ mem_init(void)
 	// Your code goes here:
 
 
+	// size_t npages;			// Amount of physical memory (in pages)
+	// static size_t npages_basemem;	// Amount of base memory (in pages)
+	// pde_t *kern_pgdir;		// Kernel's initial page directory
+	// struct PageInfo *pages;		// Physical page state array
+	// static struct PageInfo *page_free_list;	// Free list of physical pages
+	
+	struct PageInfo arrPageInfo[ npages ];
+	pages = arrPageInfo;
+	cprintf("%08x\n", boot_alloc(0));
+	//memset( pages, 0, sizeof(struct PageInfo) * npages );
+
+	// Remove this line when you're ready to test this function.
+	panic("mem_init: This function is not finished\n");
+	
+	
+	
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
 	// up the list of free physical pages. Once we've done so, all further
