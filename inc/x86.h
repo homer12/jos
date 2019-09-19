@@ -3,6 +3,10 @@
 
 #include <inc/types.h>
 
+
+// cld: data transfer from low address to high address
+// insb: transfer a byte from port DX to memory ES:DI
+
 static inline void
 breakpoint(void)
 {

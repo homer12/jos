@@ -45,6 +45,17 @@ _kaddr(const char *file, int line, physaddr_t pa)
 	return (void *)(pa + KERNBASE);
 }
 
+/* @W
+ * This macro takes a phycisal page number and
+ * the pp_ref to 1 and pp_link to NULL */
+#define PHYSICAL_PAGE_INIT(ppno) _physical_page_init(ppno)
+
+static inline void
+_physical_page_init( size_t ppno )
+{
+	pages[ ppno ].pp_ref = 1;
+	pages[ ppno ].pp_link = NULL;
+}
 
 enum {
 	// For page_alloc, zero the returned physical page.
