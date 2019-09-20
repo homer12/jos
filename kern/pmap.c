@@ -11,6 +11,7 @@
 #include <kern/env.h>
 
 // These variables are set by i386_detect_memory()
+size_t xxx;
 size_t npages;			// Amount of physical memory (in pages)
 static size_t npages_basemem;	// Amount of base memory (in pages)
 
@@ -95,8 +96,9 @@ boot_alloc(uint32_t n)
 	// to any kernel code or global variables.
 	if (!nextfree) {
 		extern char end[];
+		cprintf("\nend = %p\n", end);
 		nextfree = ROUNDUP((char *) end, PGSIZE);
-		cprintf("\n  page dir starts at: %08p\n", nextfree);
+		cprintf("\npage dir starts at: %08p\n", nextfree);
 	}
 
 	// Allocate a chunk large enough to hold 'n' bytes, then update
@@ -131,6 +133,7 @@ mem_init(void)
 	// Find out how much memory the machine has (npages & npages_basemem).
 	i386_detect_memory();
 
+	cprintf("\nnpages = %d, addr = %p\n", npages, &npages);
 
 
 	//////////////////////////////////////////////////////////////////////
@@ -138,7 +141,6 @@ mem_init(void)
 	kern_pgdir = (pde_t *) boot_alloc(PGSIZE);
 	memset(kern_pgdir, 0, PGSIZE);
 	
-	cprintf("\n  npages = %d\n", npages);
 
 
 	//////////////////////////////////////////////////////////////////////
