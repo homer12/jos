@@ -11,8 +11,11 @@
 #include <kern/env.h>
 
 // These variables are set by i386_detect_memory()
-size_t xxx;
-size_t npages;			// Amount of physical memory (in pages)
+// @W: set npages = 1, so npages will not be put into .bss section
+// Otherwise, npages may be set to 0 when we do 
+// memset( kern_pgdir, 0, ... )
+// But, I succedded in lab2....
+size_t npages = 1;			// Amount of physical memory (in pages)
 static size_t npages_basemem;	// Amount of base memory (in pages)
 
 // These variables are set in mem_init()
