@@ -15,7 +15,7 @@
 // Otherwise, npages may be set to 0 when we do 
 // memset( kern_pgdir, 0, ... )
 // But, I succedded in lab2....
-size_t npages = 1;			// Amount of physical memory (in pages)
+size_t npages; 			// Amount of physical memory (in pages)
 static size_t npages_basemem;	// Amount of base memory (in pages)
 
 // These variables are set in mem_init()
@@ -57,8 +57,9 @@ i386_detect_memory(void)
 	npages = totalmem / (PGSIZE / 1024);
 	npages_basemem = basemem / (PGSIZE / 1024);
 
-	cprintf("Physical memory: %uK available, base = %uK, extended = %uK\n",
+	cprintf("\n  i386_detect_memory:\nPhysical memory: %uK available, base = %uK, extended = %uK\n",
 		totalmem, basemem, totalmem - basemem);
+	cprintf("  i386_detect_memory ends\n\n");
 }
 
 
@@ -99,9 +100,9 @@ boot_alloc(uint32_t n)
 	// to any kernel code or global variables.
 	if (!nextfree) {
 		extern char end[];
-		cprintf("\nend = %p\n", end);
-		nextfree = ROUNDUP((char *) end, PGSIZE);
-		cprintf("\npage dir starts at: %08p\n", nextfree);
+		cprintf("\n  boot_alloc:\nend = %p\n", end);
+		nextfree = ROUNDUP((char *) end + 0x200, PGSIZE);
+		cprintf("  boot_alloc ends\n\n");
 	}
 
 	// Allocate a chunk large enough to hold 'n' bytes, then update
@@ -114,7 +115,7 @@ boot_alloc(uint32_t n)
 		//cprintf("Roundup: %d\n", ROUNDUP(n,PGSIZE));
 		nextfree += ROUNDUP( n, PGSIZE );
 	}
-
+	
 	return result;
 }
 
@@ -130,13 +131,14 @@ boot_alloc(uint32_t n)
 void
 mem_init(void)
 {
+	cprintf("\n  mem_init:\n");
 	uint32_t cr0;
 	size_t n;
 
 	// Find out how much memory the machine has (npages & npages_basemem).
 	i386_detect_memory();
-
-	cprintf("\nnpages = %d, addr = %p\n", npages, &npages);
+	
+	cprintf("npages = %d, addr = %p\n", npages, &npages);
 
 
 	//////////////////////////////////////////////////////////////////////
@@ -172,11 +174,18 @@ mem_init(void)
 	
 	pages = (struct PageInfo *)boot_alloc( sizeof(struct PageInfo) * npages );
 	memset( pages, 0, sizeof(struct PageInfo) * npages );
-	cprintf("\n  pages starts at: %08p, ends at: %08p\n", pages, boot_alloc(0));
+	cprintf("pages starts at: %08p, ends at: %08p\n", pages, boot_alloc(0));
 	
 	//////////////////////////////////////////////////////////////////////
 	// Make 'envs' point to an array of size 'NENV' of 'struct Env'.
 	// LAB 3: Your code here.
+	// define of envs is in kern/env.c
+	// define of struct Env is in inc/env.h
+	// define of NENV is in inc/env.h, which is equal to 1<<10
+	envs = (struct Env *)boot_alloc( sizeof(struct Env) * NENV );
+	memset( envs, 0, sizeof(struct Env) * NENV );
+	cprintf("envs starts at: %p, ends at: %p\n", envs, boot_alloc(0));
+	
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -215,6 +224,10 @@ mem_init(void)
 	//    - the new image at UENVS  -- kernel R, user R
 	//    - envs itself -- kernel RW, user NONE
 	// LAB 3: Your code here.
+	boot_map_region( kern_pgdir, UENVS, NENV*sizeof(struct Env),
+				PADDR(envs), PTE_U | PTE_P );
+	boot_map_region( kern_pgdir, (uintptr_t)envs, NENV*sizeof(struct Env),
+				PADDR(envs), PTE_W | PTE_P );
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
@@ -264,6 +277,7 @@ mem_init(void)
 	// Some more checks, only possible after kern_pgdir is installed.
 	check_page_installed_pgdir();
 	
+	cprintf("  mem_init ends\n\n");
 }
 
 // --------------------------------------------------------------
@@ -694,7 +708,6 @@ check_page_free_list(bool only_low_memory)
 	}
 	
 	first_free_page = (char *) boot_alloc(0);
-	cprintf("\n  first_free_page = %p\n", first_free_page);
 	for (pp = page_free_list; pp; pp = pp->pp_link) {
 		// check that we didn't corrupt the free list itself
 		assert(pp >= pages);
