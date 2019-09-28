@@ -63,11 +63,64 @@ void
 trap_init(void)
 {
 	extern struct Segdesc gdt[];
-
+	
+	cprintf("\n  trap_init:\n");	
 	// LAB 3: Your code here.
+	extern const char trap_0_handler[];
+	extern const char trap_1_handler[];
+	extern const char trap_2_handler[];
+	extern const char trap_3_handler[];
+	extern const char trap_4_handler[];
+	extern const char trap_5_handler[];
+	extern const char trap_6_handler[];
+	extern const char trap_7_handler[];
+	extern const char trap_8_handler[];
+	extern const char trap_9_handler[];
+	extern const char trap_10_handler[];
+	extern const char trap_11_handler[];
+	extern const char trap_12_handler[];
+	extern const char trap_13_handler[];
+	extern const char trap_14_handler[];
+	extern const char trap_15_handler[];
+	extern const char trap_16_handler[];
+	extern const char trap_17_handler[];
+	extern const char trap_18_handler[];
+	extern const char trap_19_handler[];
+	extern const char trap_48_handler[];
+	extern const char trap_500_handler[];
+	
+	cprintf("trap_0_handler starts at: %p\n", trap_0_handler );
+	cprintf("trap_48_handler starts at: %p\n", trap_48_handler );
+	
+	// @W: <inc/mmu.h>: #define SETGATE(gate, istrap, sel, off, dpl)
+	SETGATE( idt[0], 1, GD_KT, trap_0_handler, 0);
+	SETGATE( idt[1], 0, GD_KT, trap_1_handler, 0);
+	SETGATE( idt[2], 1, GD_KT, trap_2_handler, 0);
+	SETGATE( idt[3], 1, GD_KT, trap_3_handler, 0);
+	SETGATE( idt[4], 1, GD_KT, trap_4_handler, 0);
+	SETGATE( idt[5], 1, GD_KT, trap_5_handler, 0);
+	SETGATE( idt[6], 1, GD_KT, trap_6_handler, 0);
+	SETGATE( idt[7], 1, GD_KT, trap_7_handler, 0);
+	SETGATE( idt[8], 1, GD_KT, trap_8_handler, 0);
+	// SETGATE( idt[9], 1, GD_KT, trap_9_handler, 0);
+	SETGATE( idt[10], 1, GD_KT, trap_10_handler, 0);
+	SETGATE( idt[11], 1, GD_KT, trap_11_handler, 0);
+	SETGATE( idt[12], 1, GD_KT, trap_12_handler, 0);
+	SETGATE( idt[13], 1, GD_KT, trap_13_handler, 0);
+	SETGATE( idt[14], 1, GD_KT, trap_14_handler, 0);
+	// SETGATE( idt[15], 1, GD_KT, trap_15_handler, 0);
+	SETGATE( idt[16], 1, GD_KT, trap_16_handler, 0);
+	SETGATE( idt[17], 1, GD_KT, trap_17_handler, 0);
+	SETGATE( idt[18], 1, GD_KT, trap_18_handler, 0);
+	SETGATE( idt[19], 1, GD_KT, trap_19_handler, 0);
+	SETGATE( idt[48], 0, GD_KT, trap_48_handler, 0);
+	// SETGATE( idt[500], 1, GD_KT, trap_19_handler, 0);
+	
 
 	// Per-CPU setup 
 	trap_init_percpu();
+	
+	cprintf("  trap_init ends\n\n");	
 }
 
 // Initialize and load the per-CPU TSS and IDT
@@ -144,6 +197,8 @@ trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
+	
+
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);

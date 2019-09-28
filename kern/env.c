@@ -40,18 +40,23 @@ struct Segdesc gdt[] =
 	SEG_NULL,
 
 	// 0x8 - kernel code segment
+	// GDT index  = 1
 	[GD_KT >> 3] = SEG(STA_X | STA_R, 0x0, 0xffffffff, 0),
 
 	// 0x10 - kernel data segment
+	// GDT index  = 2
 	[GD_KD >> 3] = SEG(STA_W, 0x0, 0xffffffff, 0),
 
 	// 0x18 - user code segment
+	// GDT index  = 3
 	[GD_UT >> 3] = SEG(STA_X | STA_R, 0x0, 0xffffffff, 3),
 
 	// 0x20 - user data segment
+	// GDT index  = 4
 	[GD_UD >> 3] = SEG(STA_W, 0x0, 0xffffffff, 3),
 
 	// 0x28 - tss, initialized in trap_init_percpu()
+	// GDT index  = 5
 	[GD_TSS0 >> 3] = SEG_NULL
 };
 
@@ -279,7 +284,6 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 static void
 region_alloc(struct Env *e, void *va, size_t len)
 {
-	cprintf("\n  region_alloc:\n");
 	// LAB 3: Your code here.
 	// (But only if you need it for load_icode.)
 	//
@@ -311,7 +315,6 @@ region_alloc(struct Env *e, void *va, size_t len)
 				panic( "region_alloc -> page_insert: %e\n", r);
 		}
 	}
-	cprintf("  region_alloc ends\n\n");
 
 }
 
@@ -402,7 +405,6 @@ load_icode(struct Env *e, uint8_t *binary)
 		region_alloc( e, (void*)ph->p_va, ph->p_memsz );
 		
 		// 3. Move data
-		cprintf(" va = %p, pa = %p, p_offset = %p\n", ph->p_va, ph->p_pa, binary+ph->p_offset);
 		memcpy( (void*)ph->p_va, binary+ph->p_offset, ph->p_memsz );
 
 		// 4. Clear bytes from [ ph->p_va+ph->p_filesz, ph->p_va+ph->p_memsz) to 0
