@@ -64,6 +64,7 @@ trap_init(void)
 {
 	extern struct Segdesc gdt[];
 	
+	cprintf("\n  trap_init:\n");	
 	// LAB 3: Your code here.
 	extern const char trap_0_handler[];
 	extern const char trap_1_handler[];
@@ -118,6 +119,8 @@ trap_init(void)
 
 	// Per-CPU setup 
 	trap_init_percpu();
+	
+	cprintf("  trap_init ends\n\n");	
 }
 
 // Initialize and load the per-CPU TSS and IDT
