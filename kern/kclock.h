@@ -6,6 +6,13 @@
 # error "This is a JOS kernel header; user programs should not #include it"
 #endif
 
+/*
+ *	Reference:
+ *	http://www.bioscentral.com/misc/cmosmap.htm
+ *
+ */
+
+
 #define	IO_RTC		0x070		/* RTC port */
 
 #define	MC_NVRAM_START	0xe	/* start of NVRAM: offset 14 */
@@ -22,6 +29,7 @@
 /* NVRAM bytes 38 and 39: extended memory size (between 16MB and 4G) */
 #define NVRAM_EXT16LO	(MC_NVRAM_START + 38)	/* low byte; RTC off. 0x34 */
 #define NVRAM_EXT16HI	(MC_NVRAM_START + 39)	/* high byte; RTC off. 0x35 */
+
 
 unsigned mc146818_read(unsigned reg);
 void mc146818_write(unsigned reg, unsigned datum);

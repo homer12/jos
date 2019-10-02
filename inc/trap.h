@@ -56,11 +56,13 @@ struct PushRegs {
 } __attribute__((packed));
 
 struct Trapframe {
+	/* push these in _alltraps in <kern/trapentry.S> */
 	struct PushRegs tf_regs;
 	uint16_t tf_es;
 	uint16_t tf_padding1;
 	uint16_t tf_ds;
 	uint16_t tf_padding2;
+	/* tf_trapno is push onto stack in TRAPHANDLER macro in <kern/trapentry.S>*/
 	uint32_t tf_trapno;
 	/* below here defined by x86 hardware */
 	uint32_t tf_err;

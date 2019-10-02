@@ -16,6 +16,7 @@
 # location in physical memory (its load address).	 
 ###################################################################
 
+# KERNBASE = 0xF0000000
 #define	RELOC(x) ((x) - KERNBASE)
 
 #define MULTIBOOT_HEADER_MAGIC (0x1BADB002)
@@ -61,6 +62,7 @@ entry:
 	movl	%cr0, %eax
 	orl	$(CR0_PE|CR0_PG|CR0_WP), %eax
 	movl	%eax, %cr0
+	#test
 
 	# Now paging is enabled, but we're still running at a low EIP
 	# (why is this okay?).  Jump up above KERNBASE before entering

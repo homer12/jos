@@ -1,4 +1,6 @@
-/obj
+obj/*
+!obj/.deps
+wldir/*
 /jos.in
 /jos.log
 /jos.out
@@ -16,3 +18,4 @@
 /sol?/
 /myapi.key
 /.suf
+/qemuresweil

@@ -11,6 +11,7 @@
 
 // The constants below define some symbol types used by various debuggers
 // and compilers.  JOS uses the N_SO, N_SOL, N_FUN, and N_SLINE types.
+// N_SO = main source name
 
 #define	N_GSYM		0x20	// global symbol
 #define	N_FNAME		0x22	// F77 function name

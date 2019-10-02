@@ -138,6 +138,12 @@ memset(void *v, int c, size_t n)
 	return v;
 }
 
+
+/*
+ *	copy the contents from [ str, str+n )
+ *		to memory [ dst, dst+n )
+ */
+
 void *
 memmove(void *dst, const void *src, size_t n)
 {
@@ -147,8 +153,15 @@ memmove(void *dst, const void *src, size_t n)
 	s = src;
 	d = dst;
 	if (s < d && s + n > d) {
+		// I see, in order to prevent the
+		//	contents in [ src, src+n ) won't be dirtied
 		s += n;
 		d += n;
+		
+		// D = edi	DESTINATION
+		// S = esi	SOURCE
+		// c = ecx	COUNT
+		// std meas from higher address to lower address
 		if ((int)s%4 == 0 && (int)d%4 == 0 && n%4 == 0)
 			asm volatile("std; rep movsl\n"
 				:: "D" (d-4), "S" (s-4), "c" (n/4) : "cc", "memory");

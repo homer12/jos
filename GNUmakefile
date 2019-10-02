@@ -186,6 +186,9 @@ print-qemu:
 print-gdbport:
 	@echo $(GDBPORT)
 
+dprint-%:
+	@echo $* = $($*)
+
 # For deleting the build
 clean:
 	rm -rf $(OBJDIR) .gdbinit jos.in qemu.log
@@ -207,6 +210,7 @@ grade:
 	@echo $(MAKE) clean
 	@$(MAKE) clean || \
 	  (echo "'make clean' failed.  HINT: Do you have another running instance of JOS?" && exit 1)
+	@echo "Begin"
 	./grade-lab$(LAB) $(GRADEFLAGS)
 
 git-handin: handin-check

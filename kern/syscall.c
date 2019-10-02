@@ -22,7 +22,17 @@ sys_cputs(const char *s, size_t len)
 	// Destroy the environment if not.
 
 	// LAB 3: Your code here.
-
+	char *p = (char*)  ROUNDDOWN((uintptr_t) s, PGSIZE);
+	pte_t *ptep;
+	
+	
+	/* @W: how to check the legality of vaddress s? */
+	/* I want to call pgdir_walk(), but where to find the pgdir? */
+	// OH FUCK. see the <inc/memlayout.h>
+	// page directory of user process resides in UVPT
+	
+	user_mem_assert( curenv, s, len, PTE_U );
+	
 	// Print the string supplied by the user.
 	cprintf("%.*s", len, s);
 }
@@ -270,12 +280,29 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	// Call the function corresponding to the 'syscallno' parameter.
 	// Return any appropriate return value.
 	// LAB 3: Your code here.
-
-	panic("syscall not implemented");
+	int ret;
 
 	switch (syscallno) {
 	default:
 		return -E_INVAL;
+	
+	case SYS_cputs:
+		sys_cputs( (char*)a1, (size_t)a2 );
+		break;
+
+	case SYS_cgetc:
+		ret = sys_cgetc();
+		return ret;
+
+	case SYS_getenvid:
+		ret = sys_getenvid();
+		return ret;
+
+	case SYS_env_destroy:
+		ret = sys_env_destroy( (envid_t)a1 );
+		break;
 	}
+
+	return 0;
 }
 

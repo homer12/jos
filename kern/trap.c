@@ -70,11 +70,64 @@ void
 trap_init(void)
 {
 	extern struct Segdesc gdt[];
-
+	
+	cprintf("\n  trap_init:\n");	
 	// LAB 3: Your code here.
+	extern const char trap_0_handler[];
+	extern const char trap_1_handler[];
+	extern const char trap_2_handler[];
+	extern const char trap_3_handler[];
+	extern const char trap_4_handler[];
+	extern const char trap_5_handler[];
+	extern const char trap_6_handler[];
+	extern const char trap_7_handler[];
+	extern const char trap_8_handler[];
+	extern const char trap_9_handler[];
+	extern const char trap_10_handler[];
+	extern const char trap_11_handler[];
+	extern const char trap_12_handler[];
+	extern const char trap_13_handler[];
+	extern const char trap_14_handler[];
+	extern const char trap_15_handler[];
+	extern const char trap_16_handler[];
+	extern const char trap_17_handler[];
+	extern const char trap_18_handler[];
+	extern const char trap_19_handler[];
+	extern const char trap_48_handler[];
+	extern const char trap_500_handler[];
+	
+	cprintf("trap_0_handler starts at: %p\n", trap_0_handler );
+	cprintf("trap_48_handler starts at: %p\n", trap_48_handler );
+	
+	// @W: <inc/mmu.h>: #define SETGATE(gate, istrap, sel, off, dpl)
+	SETGATE( idt[0], 1, GD_KT, trap_0_handler, 0);
+	SETGATE( idt[1], 0, GD_KT, trap_1_handler, 0);
+	SETGATE( idt[2], 1, GD_KT, trap_2_handler, 0);
+	SETGATE( idt[3], 1, GD_KT, trap_3_handler, 3);
+	SETGATE( idt[4], 1, GD_KT, trap_4_handler, 0);
+	SETGATE( idt[5], 1, GD_KT, trap_5_handler, 0);
+	SETGATE( idt[6], 1, GD_KT, trap_6_handler, 0);
+	SETGATE( idt[7], 1, GD_KT, trap_7_handler, 0);
+	SETGATE( idt[8], 1, GD_KT, trap_8_handler, 0);
+	// SETGATE( idt[9], 1, GD_KT, trap_9_handler, 0);
+	SETGATE( idt[10], 1, GD_KT, trap_10_handler, 0);
+	SETGATE( idt[11], 1, GD_KT, trap_11_handler, 0);
+	SETGATE( idt[12], 1, GD_KT, trap_12_handler, 0);
+	SETGATE( idt[13], 1, GD_KT, trap_13_handler, 0);
+	SETGATE( idt[14], 1, GD_KT, trap_14_handler, 0);
+	// SETGATE( idt[15], 1, GD_KT, trap_15_handler, 0);
+	SETGATE( idt[16], 1, GD_KT, trap_16_handler, 0);
+	SETGATE( idt[17], 1, GD_KT, trap_17_handler, 0);
+	SETGATE( idt[18], 1, GD_KT, trap_18_handler, 0);
+	SETGATE( idt[19], 1, GD_KT, trap_19_handler, 0);
+	SETGATE( idt[48], 0, GD_KT, trap_48_handler, 3);
+	// SETGATE( idt[500], 1, GD_KT, trap_19_handler, 0);
+	
 
 	// Per-CPU setup 
 	trap_init_percpu();
+	
+	cprintf("  trap_init ends\n\n");	
 }
 
 // Initialize and load the per-CPU TSS and IDT
@@ -176,6 +229,23 @@ trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
+	switch( tf->tf_trapno ){
+	case T_BRKPT:
+		print_trapframe(tf);
+		while(1)
+			monitor(NULL);
+		break;
+
+	case T_PGFLT:
+		page_fault_handler(tf);
+		break;
+
+	case T_SYSCALL:
+		syscall_handler(tf);
+		return;
+	}
+	
+
 
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
@@ -268,9 +338,14 @@ page_fault_handler(struct Trapframe *tf)
 	// Read processor's CR2 register to find the faulting address
 	fault_va = rcr2();
 
+
 	// Handle kernel-mode page faults.
 
 	// LAB 3: Your code here.
+	if( (tf->tf_cs & ( 0x03 )) != 0x03 ){
+		panic("Kernel page fault!");
+	}
+
 
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.
@@ -313,3 +388,19 @@ page_fault_handler(struct Trapframe *tf)
 	env_destroy(curenv);
 }
 
+void
+syscall_handler(struct Trapframe *tf)
+{
+	int ret = syscall( 
+		tf->tf_regs.reg_eax,	/* syscall number  */
+		tf->tf_regs.reg_edx,	/* a1 */
+		tf->tf_regs.reg_ecx,	/* a2 */
+		tf->tf_regs.reg_ebx,	/* a3 */
+		tf->tf_regs.reg_edi,	/* a4 */
+		tf->tf_regs.reg_esi		/* a5 */
+	);
+
+
+	// @W: handle the RETURN VALUE
+	tf->tf_regs.reg_eax = ret;
+}

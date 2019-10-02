@@ -48,9 +48,89 @@
  * Lab 3: Your code here for generating entry points for the different traps.
  */
 
+/* 0: DIVIDE 0 ERROR */
+TRAPHANDLER_NOEC( trap_0_handler, 0 )
+
+/* 1: DEBUG EXCEPTION */
+TRAPHANDLER_NOEC( trap_1_handler, 1 )
+
+/* 2: NMI interrupt   */
+TRAPHANDLER_NOEC( trap_2_handler, 2 )
+
+/* 3: BREAKPOINT */
+TRAPHANDLER_NOEC( trap_3_handler, 3 )
+
+/* 4: OVERFLOW  */
+TRAPHANDLER_NOEC( trap_4_handler, 4 )
+
+/* 5: BOUND RANGE EXCEEDED  */
+TRAPHANDLER_NOEC( trap_5_handler, 5 )
+
+/* 6: INVALID OPCODE  */
+TRAPHANDLER_NOEC( trap_6_handler, 6 )
+
+/* 7: DEVICE NOT AVAILABLE  */
+TRAPHANDLER_NOEC( trap_7_handler, 7 )
+
+/* 8: DOUBLE FAULT with error code */
+TRAPHANDLER( trap_8_handler, 8 )
+
+/* 9: RESERVED */
+
+/* 10: INVALID TSS with error code */
+TRAPHANDLER( trap_10_handler, 10 )
+
+/* 11: SEGMENT NOT PRESENT with error code */
+TRAPHANDLER( trap_11_handler, 11 )
+
+/* 12: STACK SEGMENT FAULT  with error code */
+TRAPHANDLER( trap_12_handler, 12 )
+
+/* 13: GENERAL PROTECTION  with error code */
+TRAPHANDLER( trap_13_handler, 13 )
+
+/* 14: PAGE FAULT  with error code */
+TRAPHANDLER( trap_14_handler, 14 )
+
+/* 15: RESERVED  */
+
+/* 16: X87 FLOATING-POINT ERROR  */
+TRAPHANDLER_NOEC( trap_16_handler, 16 )
+
+/* 17: ALIGNMENT CHECK with error code */
+TRAPHANDLER( trap_17_handler, 17 )
+
+/* 18: MACHINE CHECK  */
+TRAPHANDLER_NOEC( trap_18_handler, 18 )
+
+/* 19: SIMD FLOATING-POINT EXCEPTION  */
+TRAPHANDLER_NOEC( trap_19_handler, 19 )
+
+/* 48: SYSTEM CALL  */
+TRAPHANDLER_NOEC( trap_48_handler, 48)
+
+/* 500: CATCHALL  */
+TRAPHANDLER_NOEC( trap_500_handler, 500)
+
+
 
 
 /*
  * Lab 3: Your code here for _alltraps
  */
+_alltraps:
+	push %ds
+	push %es
+	pushal
+	
+	movw $(GD_KD), %ax
+	movw %ax, %es
+	movw %ax, %ds
+	pushl %esp
+	
+	call trap
 
+	movl $0x4, %esp
+	popal
+	iret
+	
