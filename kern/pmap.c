@@ -640,6 +640,32 @@ int
 user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 {
 	// LAB 3: Your code here.
+	
+	if( (char*)va + len >= (char*)ULIM ){
+		user_mem_check_addr = (uintptr_t) va;
+		return -E_FAULT;
+	}
+	
+	uintptr_t sva = (uintptr_t)ROUNDDOWN( va, PGSIZE );
+	uintptr_t eva = (uintptr_t)ROUNDUP( (char*)va+len, PGSIZE );
+	
+
+	pte_t *ptep = NULL;
+	int isFirstIter = 1;
+	for( ; sva < eva; sva += PGSIZE, isFirstIter = 0 ){
+		ptep = pgdir_walk( env->env_pgdir, (void*)sva, 0 );
+		if( ptep == NULL ){
+			user_mem_check_addr = (isFirstIter) ? (uintptr_t)va : sva;
+			return -E_FAULT;
+		}
+		
+		perm |= PTE_P;
+		
+		if( ((*ptep) & (perm)) != perm ){
+			user_mem_check_addr = (isFirstIter) ? (uintptr_t)va : sva;
+			return -E_FAULT;
+		}
+	}
 
 	return 0;
 }

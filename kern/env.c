@@ -201,10 +201,11 @@ env_setup_vm(struct Env *e)
 	memcpy( e->env_pgdir, kern_pgdir, PGSIZE );
 	p->pp_ref++;
 
+
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R
 	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
-
+	
 	cprintf("  env_setup_vm ends\n\n");
 	return 0;
 }
@@ -430,6 +431,9 @@ load_icode(struct Env *e, uint8_t *binary)
 
 	int r = page_insert( e->env_pgdir, p,
 			(void*)(USTACKTOP - PGSIZE), PTE_U | PTE_W );
+	cprintf("\n");
+	cprintf("pgdir of this env starts at: 0x%08x\n", rcr3());
+	cprintf("\n");
 	if( r != 0 ){
 		panic( "load_icode -> page_insert: %e\n", r );
 	}
@@ -562,7 +566,6 @@ env_pop_tf(struct Trapframe *tf)
 void
 env_run(struct Env *e)
 {
-	cprintf("\n  env_run:\n");
 	// Step 1: If this is a context switch (a new environment is running):
 	//	   1. Set the current environment (if any) back to
 	//	      ENV_RUNNABLE if it is ENV_RUNNING (think about
