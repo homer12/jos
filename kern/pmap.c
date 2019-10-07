@@ -683,7 +683,22 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	panic("mmio_map_region not implemented");
+	
+	// 1. Check if this reservation would overflow MMIOLIM or not
+	uintptr_t sva = base;
+	size = (size_t)ROUNDUP( size, PGSIZE );
+	uintptr_t eva = base + size;
+	
+	if( eva >= MMIOLIM || eva <= sva )
+		panic("MMIO reservation overflowed MMIOLIM");
+	
+	// 2. Map virtual address
+	boot_map_region( kern_pgdir, sva, size, pa, PTE_W | PTE_PCD | PTE_PWT );
+
+	// 3. Update MMIOBASE
+	base = eva;
+	
+	return (void*)sva;
 }
 
 static uintptr_t user_mem_check_addr;
@@ -816,6 +831,7 @@ check_page_free_list(bool only_low_memory)
 		assert(page2pa(pp) != EXTPHYSMEM - PGSIZE);
 		assert(page2pa(pp) != EXTPHYSMEM);
 		assert(page2pa(pp) < EXTPHYSMEM || (char *) page2kva(pp) >= first_free_page);
+		
 		// (new test for lab 4)
 		assert(page2pa(pp) != MPENTRY_PADDR);
 

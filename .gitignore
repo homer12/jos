@@ -1,6 +1,5 @@
-obj/*
-!obj/.deps
-wldir/*
+/obj/*
+/wldir/*
 /jos.in
 /jos.log
 /jos.out
